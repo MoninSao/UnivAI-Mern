@@ -20,7 +20,7 @@ try {
 } catch (err) {
     console.error(err);
 }
-// get the user database
-let db = client.db("users");
+// get the univs database
+let db = client.db("univs");
 
 export default db;
