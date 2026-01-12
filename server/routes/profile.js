@@ -1,3 +1,9 @@
+// This file defines the Express API endpoints for the profiles collection
+// It acts as a middleman between the React client (frontend) and MongoDB database
+// It receives HTTP requests from the client and queries the database, then sends responses back
+// Profiles is a collection in the MongoDB database
+// It has 5 CRUD operations: Create, Read (all), Read (one), Update, Delete
+
 import express from "express";
 
 // This will help us connect to the database

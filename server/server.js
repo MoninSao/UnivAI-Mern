@@ -1,3 +1,7 @@
+// This file sets up and starts the Express server (backend)
+// It configures middleware (CORS, JSON parsing) and connects API routes
+// The server listens on port 5050 and handles requests from the React frontend
+
 import express from "express";
 import cors from "cors";
 import profiles from "./routes/profile.js"

@@ -1,4 +1,10 @@
+// This file connects the Express server (backend) to MongoDB (database)
+
 import { MongoClient, ServerApiVersion } from "mongodb";
+
+// This file establishes and exports the MongoDB database connection
+// It connects to MongoDB Atlas using the connection string from environment variables
+// and provides access to the 'univs' database for use throughout the application
 
 const uri = process.env.ATLAS_URI || "";
 const client = new MongoClient(uri, {
