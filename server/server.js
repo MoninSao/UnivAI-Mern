@@ -11,6 +11,8 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// This is where we wire or connect our API endpoints routes files, add more routes when you create new entities
 app.use("/profile", profiles);
 
 //start the express server
