@@ -34,3 +34,12 @@ const Profile = (props) => (
     </td>
   </tr>
 );
+
+export default function ProfileList() {
+  const [profiles, setProfiles] = useState([]);
+
+  // This method fetched the profiles from the database
+  UseEffect(() => {
+    async function getRecords() {}
+  });
+}
