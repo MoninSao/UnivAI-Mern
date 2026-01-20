@@ -9,6 +9,7 @@ import Profile from "./components/Profile";
 import ProfileList from "./components/ProfileList";
 import "./index.css";
 
+// using react router dom here 
 const router = createBrowserRouter([
   {
     path: "/",
