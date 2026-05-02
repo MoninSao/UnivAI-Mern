@@ -56,15 +56,18 @@ export default function ProfileList() {
   // Flow: component loads → useEffect fires → fetch asks server for profiles → server queries MongoDB → response comes back → setProfiles stores it in state → screen re-renders.
   useEffect(() => {
     async function getProfiles() {
+      console.log("[ProfileList] getProfiles called");
       // fetch() is a general-purpose HTTP request tool - not just for GET.
       // Default is GET. To use other methods: fetch(url, { method: "POST" }) etc.
       const response = await fetch(`http://localhost:5050/profiles/`);
+      console.log("[ProfileList] GET /profiles status:", response.status, "| ok:", response.ok);
       if (!response.ok) {
         const message = `An error occurred: ${response.statusText}`;
         console.error(message);
         return;
       }
       const profiles = await response.json();
+      console.log("[ProfileList] Profiles received:", profiles);
       // setProfiles stores the fetched data temporarily in the browser - NOT back in the database.
       // It's like photocopying files from a cabinet to your desk.
       // The originals in MongoDB are untouched. Refreshing the page discards this copy.
@@ -105,7 +108,7 @@ export default function ProfileList() {
   // This following section will display the table with the profiles of individuals.
   return (
     <>
-      <h3 className="text-lg font-semibold p-4">Employee profiles</h3>
+      <h3 className="text-lg font-semibold p-4">Student profiles</h3>
       <div className="border rounded-lg overflow-hidden">
         <div className="relative w-full overflow-auto">
           <table className="w-full caption-bottom text-sm">
@@ -115,10 +118,10 @@ export default function ProfileList() {
                   Name
                 </th>
                 <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">
-                  Position
+                  GPA
                 </th>
                 <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">
-                  Level
+                  Major
                 </th>
                 <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">
                   Action
