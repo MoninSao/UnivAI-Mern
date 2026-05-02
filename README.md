@@ -1,6 +1,6 @@
 # UnivAI-MERN
 
-A full-stack MERN (MongoDB, Express, React, Node.js) web application for managing student university profiles. Users can create, view, edit, and delete student profiles — each storing a name, GPA, and major — backed by a MongoDB Atlas cloud database. The project also includes placeholder integration points for the **College Scorecard API** and **OpenAI API**, laying the groundwork for AI-powered university search and recommendation features.
+A full-stack MERN (MongoDB, Express, React, Node.js) web application for AI-powered university recommendations. Users can create and manage a student profile — storing their name, GPA, and major — backed by a MongoDB Atlas cloud database. The app fetches live university data from the **College Scorecard API** and uses **OpenAI (gpt-4o-mini)** to recommend the top 5 best-matched universities with personalized reasons for each.
 
 ---
 
@@ -11,7 +11,7 @@ A full-stack MERN (MongoDB, Express, React, Node.js) web application for managin
 | Frontend   | React 19, Vite, Tailwind CSS, React Router DOM  |
 | Backend    | Node.js, Express 5                              |
 | Database   | MongoDB Atlas (cloud)                           |
-| Ext. APIs  | College Scorecard API *(planned)*, OpenAI *(planned)* |
+| Ext. APIs  | College Scorecard API, OpenAI gpt-4o-mini            |
 
 ---
 
@@ -23,21 +23,25 @@ UnivAI-Mern/
 │   ├── src/
 │   │   ├── App.jsx          # Root component
 │   │   ├── components/
-│   │   │   ├── Navbar.tsx       # Top navigation bar
-│   │   │   └── ProfileList.tsx  # Displays list of student profiles
+│   │   │   ├── Navbar.tsx           # Top navigation bar
+│   │   │   ├── Profile.jsx          # Single profile view
+│   │   │   └── ProfileList.jsx      # Displays list of student profiles
 │   ├── tailwind.config.js
 │   └── vite.config.js
 │
 └── server/                  # Express backend
     ├── server.js            # App entry point, middleware, route wiring
-    ├── config.env           # Environment variables (ATLAS_URI, PORT)
+    ├── .env                 # Environment variables (not committed)
     ├── db/
     │   └── connection.js    # MongoDB Atlas connection
     ├── routes/
-    │   └── profile.js       # CRUD API routes for /profile
+    │   ├── profile.js           # CRUD API routes for /profile
+    │   ├── university.js        # GET /university — fetches from College Scorecard
+    │   └── reccomendation.js    # POST /recommendations — AI recommendations
     └── external_api/
-        ├── college_scorecard.js   # Placeholder: College Scorecard API
-        └── openai.js              # Placeholder: OpenAI API
+        ├── college_scorecard.js # Fetches live university data from College Scorecard API
+        ├── buildPrompt.js       # Formats student + universities into OpenAI prompt
+        └── openai.js            # Calls gpt-4o-mini, returns top 5 matched universities
 ```
 
 ---
@@ -54,16 +58,22 @@ Before running the project, make sure you have the following installed:
 
 ## Environment Setup
 
-The backend reads configuration from `server/config.env`. This file is **not** committed to source control in production — keep it local and private.
+The backend reads configuration from `server/.env`. This file is **not** committed to source control in production — keep it local and private.
 
 ```env
-# server/config.env
+# server/.env
 
 # MongoDB Atlas connection string
 ATLAS_URI="mongodb+srv://<username>:<password>@<cluster>.mongodb.net/?appName=<AppName>"
 
 # Port the Express server will listen on
 PORT=5050
+
+# API key for the College Scorecard API
+COLLEGE_SCORECARD_API_KEY=your_key_here
+
+# API key for OpenAI
+OPENAI_API_KEY=sk-your_key_here
 ```
 
 Replace `<username>`, `<password>`, `<cluster>`, and `<AppName>` with your own MongoDB Atlas credentials.
@@ -79,10 +89,10 @@ Open a terminal and navigate to the `server/` directory:
 ```bash
 cd server
 npm install          # Install backend dependencies (only needed once or after a pull)
-node --env-file=config.env server.js
+node --env-file=.env server.js
 ```
 
-> The `--env-file=config.env` flag loads environment variables from `config.env` without a `.env` package. Requires **Node.js v18+**.
+> The `--env-file=.env` flag loads environment variables from `.env` without a separate package. Requires **Node.js v18+**.
 
 **Expected output:**
 ```
@@ -153,7 +163,7 @@ All routes are prefixed with `/profile` and served at `http://localhost:5050`.
 ## Debugging Common Issues
 
 ### `Error: ATLAS_URI is not defined` or MongoDB connection fails
-- Confirm `config.env` exists inside the `server/` directory.
+- Confirm `.env` exists inside the `server/` directory.
 - Make sure you are running the server from the `server/` directory (not the root).
 - Verify your Atlas connection string is correct and your IP address is whitelisted in the Atlas Network Access settings.
 
