@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import UniversityCard from "./UniversityCard";
 
@@ -26,6 +27,7 @@ function SkeletonCard() {
 }
 
 export default function UniversityDeck() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [universities, setUniversities] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -47,6 +49,17 @@ export default function UniversityDeck() {
         setLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    if (universities.length === 0) return;
+    const highlight = searchParams.get("highlight");
+    if (!highlight) return;
+    const matchIdx = universities.findIndex(
+      (u) => u.name.toLowerCase() === highlight.toLowerCase()
+    );
+    setCurrentIndex(matchIdx >= 0 ? matchIdx : 0);
+    setSearchParams({}, { replace: true });
+  }, [universities, searchParams, setSearchParams]);
 
   function goNext() {
     setDirection(1);

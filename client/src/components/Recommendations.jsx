@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 
 function SpinnerIcon() {
@@ -10,7 +11,7 @@ function SpinnerIcon() {
   );
 }
 
-function RecCard({ rec, index }) {
+function RecCard({ rec, index, navigate }) {
   const colors = [
     "from-indigo-600/20 to-violet-600/10 border-indigo-500/20",
     "from-violet-600/20 to-purple-600/10 border-violet-500/20",
@@ -22,11 +23,12 @@ function RecCard({ rec, index }) {
 
   return (
     <motion.div
+      onClick={() => navigate('/universities?highlight=' + encodeURIComponent(rec.name))}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: index * 0.08, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ y: -2, transition: { duration: 0.2 } }}
-      className={`relative rounded-2xl p-6 flex gap-5 border bg-gradient-to-br ${colorClass} backdrop-blur-sm overflow-hidden`}
+      className={`group relative rounded-2xl p-6 flex gap-5 border bg-gradient-to-br ${colorClass} backdrop-blur-sm overflow-hidden cursor-pointer`}
     >
       {/* Rank badge */}
       <div className="shrink-0">
@@ -45,6 +47,9 @@ function RecCard({ rec, index }) {
       <div className="flex flex-col gap-1.5 min-w-0">
         <h3 className="text-base font-bold text-slate-100 leading-tight">{rec.name}</h3>
         <p className="text-sm text-slate-300 leading-relaxed">{rec.reason}</p>
+        <span className="mt-1 text-xs font-medium text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+          View card →
+        </span>
       </div>
 
       {/* Subtle top-right glow */}
@@ -55,6 +60,7 @@ function RecCard({ rec, index }) {
 }
 
 export default function Recommendations() {
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [profileError, setProfileError] = useState(null);
@@ -245,7 +251,7 @@ export default function Recommendations() {
             </div>
             <div className="flex flex-col gap-3">
               {results.map((rec, i) => (
-                <RecCard key={i} rec={rec} index={i} />
+                <RecCard key={i} rec={rec} index={i} navigate={navigate} />
               ))}
             </div>
           </motion.div>
