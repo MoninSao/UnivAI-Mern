@@ -19,32 +19,32 @@ const router = express.Router();
 
 // This section will help you get a list of all the profiles.
 router.get("/", async (req, res) => {
-    console.log("[GET /profiles] Request received");
+    console.log("[GET /profile] Request received");
     let collection = await db.collection("profiles");
     let results = await collection.find({}).toArray();
-    console.log("[GET /profiles] Returning", results.length, "profiles:", results);
+    console.log("[GET /profile] Returning", results.length, "profile:", results);
     res.send(results).status(200);
 });
 
 //This section will help you get a single profile by id
 router.get("/:id", async (req, res) => {
-    console.log("[GET /profiles/:id] Looking up id:", req.params.id);
+    console.log("[GET /profile/:id] Looking up id:", req.params.id);
     let collection = await db.collection("profiles");
     let query = { _id: new ObjectId(req.params.id) };
     let result = await collection.findOne(query);
 
     if (!result) {
-        console.warn("[GET /profiles/:id] Not found for id:", req.params.id);
+        console.warn("[GET /profile/:id] Not found for id:", req.params.id);
         res.send("Not found").status(404);
     } else {
-        console.log("[GET /profiles/:id] Found:", result);
+        console.log("[GET /profile/:id] Found:", result);
         res.send(result).status(200);
     }
 })
 
 // This section will help you create a new profile
 router.post("/", async (req, res) => {
-    console.log("[POST /profiles] Request body:", req.body);
+    console.log("[POST /profile] Request body:", req.body);
     try {
         // query the db first for the profile
         let collection = await db.collection("profiles");
@@ -52,7 +52,7 @@ router.post("/", async (req, res) => {
         const existing = await collection.countDocuments();
         // Only allow for one profile to be created 
         if (existing >= 1) {
-            console.warn("[POST /profiles] Rejected — a profile already exists");
+            console.warn("[POST /profile] Rejected — a profile already exists");
             return res.status(409).send("Only one profile is allowed.");
         }
         let newProfile = {
@@ -60,12 +60,12 @@ router.post("/", async (req, res) => {
             gpa: req.body.gpa,
             major: req.body.major,
         };
-        console.log("[POST /profiles] Inserting:", newProfile);
+        console.log("[POST /profile] Inserting:", newProfile);
         let result = await collection.insertOne(newProfile);
-        console.log("[POST /profiles] Insert result:", result);
+        console.log("[POST /profile] Insert result:", result);
         res.send(result).status(204);
     } catch (err) {
-        console.error("[POST /profiles] Error:", err);
+        console.error("[POST /profile] Error:", err);
         res.status(500).send("Error adding profile");
     }
 });

@@ -6,6 +6,7 @@ import "dotenv/config"
 import express from "express";
 import cors from "cors";
 import profiles from "./routes/profile.js"
+import universities from "./routes/university.js"
 
 const PORT = process.env.PORT || 5050;
 const app = express();
@@ -15,6 +16,7 @@ app.use(express.json());
 
 // This is where we wire or connect our API endpoints routes files, add more routes when you create new entities
 app.use("/profile", profiles);
+app.use("/university", universities);
 
 //start the express server
 app.listen(PORT, () => {
