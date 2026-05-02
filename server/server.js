@@ -2,6 +2,7 @@
 // It configures middleware (CORS, JSON parsing) and connects API routes
 // The server listens on port 5050 and handles requests from the React frontend
 
+import "dotenv/config"
 import express from "express";
 import cors from "cors";
 import profiles from "./routes/profile.js"
