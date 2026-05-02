@@ -8,6 +8,7 @@ import App from './App';
 import Profile from "./components/Profile";
 import ProfileList from "./components/ProfileList";
 import UniversityDeck from "./components/UniversityDeck";
+import Recommendations from "./components/Recommendations";
 import "./index.css";
 
 // using react router dom here 
@@ -49,6 +50,16 @@ const router = createBrowserRouter([
       {
         path: "/universities",
         element: <UniversityDeck />,
+      },
+    ],
+  },
+  {
+    path: "/recommendations",
+    element: <App />,
+    children: [
+      {
+        path: "/recommendations",
+        element: <Recommendations />,
       },
     ],
   },
