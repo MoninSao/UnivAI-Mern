@@ -1,16 +1,23 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+// The following code will serve as a viewing component for our profiles. 
+// It will fetch all the profiles in our database through a GET method.
+
+// Profile is just a blank template - it has no idea what data exists.
+// It only knows what it receives through props (short for properties).
+// The parent component (ProfileList) fills it in with real data by passing <Profile profile={oneItem} />.
+// React components MUST start with a capital letter - lowercase would be treated as a plain HTML tag.
 const Profile = (props) => (
   <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
     <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0">
       {props.profile.name}
     </td>
     <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0">
-      {props.profile.position}
+      {props.profile.gpa}
     </td>
     <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0">
-      {props.profile.level}
+      {props.profile.major}
     </td>
     <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0">
       <div className="flex gap-2">
@@ -36,27 +43,46 @@ const Profile = (props) => (
 );
 
 export default function ProfileList() {
+  // useState stores a temporary copy of the profiles in the browser's memory (React state).
+  // It is NOT stored in the database - it lives only until the page is refreshed or closed.
+  // profiles = the current value, setProfiles = the function to update it.
+  // When setProfiles is called, React re-renders the screen with the new data.
   const [profiles, setProfiles] = useState([]);
 
-  // This method fetches the profiles from the database.
+  // useEffect runs automatically when the component loads on screen.
+  // Think of it as: "when this component appears, do this thing".
+  // The function name getProfiles doesn't matter - it could be named anything.
+  // What makes this a GET request is fetch() with no method specified (GET is the default).
+  // Flow: component loads → useEffect fires → fetch asks server for profiles → server queries MongoDB → response comes back → setProfiles stores it in state → screen re-renders.
   useEffect(() => {
     async function getProfiles() {
-      const response = await fetch(`http://localhost:5050/profile/`);
+      // fetch() is a general-purpose HTTP request tool - not just for GET.
+      // Default is GET. To use other methods: fetch(url, { method: "POST" }) etc.
+      const response = await fetch(`http://localhost:5050/profiles/`);
       if (!response.ok) {
         const message = `An error occurred: ${response.statusText}`;
         console.error(message);
         return;
       }
       const profiles = await response.json();
+      // setProfiles stores the fetched data temporarily in the browser - NOT back in the database.
+      // It's like photocopying files from a cabinet to your desk.
+      // The originals in MongoDB are untouched. Refreshing the page discards this copy.
       setProfiles(profiles);
     }
-    getProfiles();
+    getProfiles(); // defining the function above doesn't run it - this line actually calls it.
     return;
+  // [profiles.length] = dependency array: re-run this effect when the number of profiles changes.
   }, [profiles.length]);
 
-  // This method will delete a profile
+  // This method does TWO things: deletes from the database AND updates the screen.
+  // Step 1: fetch with method "DELETE" sends an HTTP DELETE request to the server.
+  //         The server removes the document from MongoDB permanently.
+  //         An endpoint is identified by method + path together - same URL, different method = different action.
+  // Step 2: filter() loops through the profiles array and keeps everything EXCEPT the deleted one.
+  //         setProfiles updates the screen immediately - no need to re-fetch from the database.
   async function deleteProfile(id) {
-    await fetch(`http://localhost:5050/profile/${id}`, {
+    await fetch(`http://localhost:5050/profiles/${id}`, {
       method: "DELETE",
     });
     const newProfiles = profiles.filter((el) => el._id !== id);

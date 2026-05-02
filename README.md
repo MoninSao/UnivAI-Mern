@@ -1,6 +1,6 @@
 # UnivAI-MERN
 
-A full-stack MERN (MongoDB, Express, React, Node.js) web application for managing student university profiles. Users can create, view, edit, and delete student records — each storing a name, GPA, and major — backed by a MongoDB Atlas cloud database. The project also includes placeholder integration points for the **College Scorecard API** and **OpenAI API**, laying the groundwork for AI-powered university search and recommendation features.
+A full-stack MERN (MongoDB, Express, React, Node.js) web application for managing student university profiles. Users can create, view, edit, and delete student profiles — each storing a name, GPA, and major — backed by a MongoDB Atlas cloud database. The project also includes placeholder integration points for the **College Scorecard API** and **OpenAI API**, laying the groundwork for AI-powered university search and recommendation features.
 
 ---
 
