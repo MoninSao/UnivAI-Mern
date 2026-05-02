@@ -1,45 +1,130 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 
 // The following code will serve as a viewing component for our profiles. 
 // It will fetch all the profiles in our database through a GET method.
 
-// Profile is just a blank template - it has no idea what data exists.
-// It only knows what it receives through props (short for properties).
-// The parent component (ProfileList) fills it in with real data by passing <Profile profile={oneItem} />.
-// React components MUST start with a capital letter - lowercase would be treated as a plain HTML tag.
-const Profile = (props) => (
-  <tr className="border-b border-slate-800 transition-colors hover:bg-slate-800/50">
-    <td className="p-4 align-middle text-slate-100 font-medium">
-      {props.profile.name}
-    </td>
-    <td className="p-4 align-middle text-slate-300">
-      {props.profile.gpa}
-    </td>
-    <td className="p-4 align-middle text-slate-300">
-      {props.profile.major}
-    </td>
-    <td className="p-4 align-middle">
-      <div className="flex gap-2">
-        <Link
-          className="inline-flex items-center justify-center rounded-md border border-slate-600 bg-slate-800 px-3 h-8 text-sm font-medium text-slate-200 hover:bg-slate-700 hover:border-slate-500 transition-colors"
-          to={`/edit/${props.profile._id}`}
-        >
-          Edit
-        </Link>
-        <button
-          className="inline-flex items-center justify-center rounded-md border border-red-900 bg-slate-800 px-3 h-8 text-sm font-medium text-red-400 hover:bg-red-950 hover:border-red-700 transition-colors"
-          type="button"
-          onClick={() => {
-            props.deleteProfile(props.profile._id);
+const avatarGradients = [
+  ["#6366f1", "#8b5cf6"],
+  ["#8b5cf6", "#a855f7"],
+  ["#3b82f6", "#6366f1"],
+  ["#a855f7", "#ec4899"],
+  ["#06b6d4", "#3b82f6"],
+];
+
+const statItems = (profile) => [
+  { label: "GPA", value: profile.gpa },
+  { label: "SAT", value: profile.sat_score },
+  { label: "ACT", value: profile.act_score },
+];
+
+const ProfileCard = ({ profile, deleteProfile }) => {
+  const [g1, g2] = avatarGradients[(profile.name?.charCodeAt(0) || 0) % avatarGradients.length];
+  const initial = profile.name?.charAt(0).toUpperCase() ?? "?";
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -20, scale: 0.97 }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{ y: -3, transition: { duration: 0.2 } }}
+      style={{
+        background: "linear-gradient(135deg, #1e1b4b 0%, #1e1035 50%, #0f172a 100%)",
+        border: "1px solid rgba(139,92,246,0.4)",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)",
+      }}
+      className="rounded-2xl p-6 cursor-default"
+    >
+      <div className="flex items-start gap-5">
+        {/* Avatar */}
+        <div
+          className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black text-white shrink-0"
+          style={{
+            background: `linear-gradient(135deg, ${g1}, ${g2})`,
+            boxShadow: `0 0 20px ${g1}66`,
           }}
         >
-          Delete
-        </button>
+          {initial}
+        </div>
+
+        {/* Main info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-3 flex-wrap">
+            <h3 className="text-lg font-bold text-white truncate">{profile.name}</h3>
+            <span
+              className="text-xs font-semibold px-2.5 py-1 rounded-full shrink-0"
+              style={{
+                background: "rgba(99,102,241,0.2)",
+                color: "#c7d2fe",
+                border: "1px solid rgba(99,102,241,0.4)",
+              }}
+            >
+              {profile.major}
+            </span>
+          </div>
+
+          {/* Stats row */}
+          <div className="flex items-center gap-4 mt-3 flex-wrap">
+            {statItems(profile).map(({ label, value }) =>
+              value != null && value !== "" ? (
+                <div key={label} className="flex items-center gap-1.5">
+                  <span className="text-xs text-slate-500 uppercase tracking-widest">{label}</span>
+                  <span className="text-sm font-bold text-indigo-300">{value}</span>
+                </div>
+              ) : null
+            )}
+            {profile.intended_major && (
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs text-slate-500 uppercase tracking-widest">Intended</span>
+                <span className="text-sm font-semibold text-violet-300">{profile.intended_major}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-2 shrink-0">
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Link
+              to={`/edit/${profile._id}`}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-indigo-200 transition-all duration-200"
+              style={{
+                background: "rgba(99,102,241,0.15)",
+                border: "1px solid rgba(99,102,241,0.35)",
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5">
+                <path d="M13.488 2.513a1.75 1.75 0 0 0-2.475 0L6.75 6.774a2.75 2.75 0 0 0-.596.892l-.848 2.047a.75.75 0 0 0 .98.98l2.047-.848a2.75 2.75 0 0 0 .892-.596l4.261-4.263a1.75 1.75 0 0 0 0-2.474Z" />
+                <path d="M4.75 3.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h6.5c.69 0 1.25-.56 1.25-1.25V9a.75.75 0 0 1 1.5 0v2.25A2.75 2.75 0 0 1 11.25 14h-6.5A2.75 2.75 0 0 1 2 11.25v-6.5A2.75 2.75 0 0 1 4.75 2H7a.75.75 0 0 1 0 1.5H4.75Z" />
+              </svg>
+              Edit
+            </Link>
+          </motion.div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            type="button"
+            onClick={() => deleteProfile(profile._id)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-red-300 transition-all duration-200"
+            style={{
+              background: "rgba(239,68,68,0.1)",
+              border: "1px solid rgba(239,68,68,0.3)",
+            }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="w-3.5 h-3.5">
+              <path fillRule="evenodd" d="M5 3.25V4H2.75a.75.75 0 0 0 0 1.5h.3l.815 8.15A1.5 1.5 0 0 0 5.357 15h5.285a1.5 1.5 0 0 0 1.493-1.35l.815-8.15h.3a.75.75 0 0 0 0-1.5H11v-.75A2.25 2.25 0 0 0 8.75 1h-1.5A2.25 2.25 0 0 0 5 3.25Zm2.25-.75a.75.75 0 0 0-.75.75V4h3v-.75a.75.75 0 0 0-.75-.75h-1.5ZM6.05 6a.75.75 0 0 1 .787.713l.275 5.5a.75.75 0 0 1-1.498.075l-.275-5.5A.75.75 0 0 1 6.05 6Zm3.9 0a.75.75 0 0 1 .712.787l-.275 5.5a.75.75 0 0 1-1.498-.075l.275-5.5a.75.75 0 0 1 .786-.711Z" clipRule="evenodd" />
+            </svg>
+            Delete
+          </motion.button>
+        </div>
       </div>
-    </td>
-  </tr>
-);
+    </motion.div>
+  );
+};
+
 
 export default function ProfileList() {
   // useState stores a temporary copy of the profiles in the browser's memory (React state).
@@ -91,70 +176,88 @@ export default function ProfileList() {
     setProfiles(newProfiles);
   }
 
-  // This method will map out the profiles on the table
-  function profileList() {
-    return profiles.map((profile) => {
-      return (
-        <Profile
-          profile={profile}
-          deleteProfile={() => deleteProfile(profile._id)}
-          key={profile._id}
-        />
-      );
-    });
-  }
-
-  // This following section will display the table with the profiles of individuals.
   return (
-    <>
-      <div className="mb-6 flex items-start justify-between gap-4">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className="max-w-3xl mx-auto"
+    >
+      {/* Header */}
+      <div className="mb-8 flex items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight text-slate-100">Student Profiles</h2>
-          <p className="mt-1 text-sm text-slate-400">Manage and review all student records.</p>
+          <h2
+            className="text-3xl font-extrabold tracking-tight"
+            style={{
+              background: "linear-gradient(135deg, #e0e7ff, #a5b4fc, #c4b5fd)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            Student Profile
+          </h2>
+          <p className="mt-1 text-sm text-slate-400">
+            {profiles.length > 0 ? "Your saved academic profile" : "No profile created yet"}
+          </p>
         </div>
         {profiles.length === 0 && (
-          <Link
-            to="/create"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 transition-colors shrink-0"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-              <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
-            </svg>
-            Create Profile
-          </Link>
+          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+            <Link to="/create" className="btn-primary flex items-center gap-2 text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+              </svg>
+              New Profile
+            </Link>
+          </motion.div>
         )}
       </div>
-      <div className="rounded-xl border border-slate-800 bg-slate-900 overflow-hidden shadow-lg shadow-slate-950/50">
-        <div className="relative w-full overflow-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-slate-800 bg-slate-900">
-                <th className="h-11 px-4 text-left align-middle text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  Name
-                </th>
-                <th className="h-11 px-4 text-left align-middle text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  GPA
-                </th>
-                <th className="h-11 px-4 text-left align-middle text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  Major
-                </th>
-                <th className="h-11 px-4 text-left align-middle text-xs font-semibold uppercase tracking-wider text-slate-400">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-800">
-              {profiles.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="py-12 text-center text-slate-500">
-                    No profiles yet. Create one to get started.
-                  </td>
-                </tr>
-              ) : profileList()}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </>
+
+      {/* Empty state */}
+      <AnimatePresence mode="wait">
+        {profiles.length === 0 ? (
+          <motion.div
+            key="empty"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3 }}
+            className="flex flex-col items-center justify-center py-28 gap-6"
+          >
+            <div
+              className="w-24 h-24 rounded-3xl flex items-center justify-center text-5xl"
+              style={{
+                background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.1))",
+                border: "1px solid rgba(139,92,246,0.3)",
+                boxShadow: "0 0 40px rgba(99,102,241,0.15)",
+              }}
+            >
+              🎓
+            </div>
+            <div className="text-center">
+              <p className="text-white font-bold text-xl">No profile yet</p>
+              <p className="text-slate-400 text-sm mt-1">Create your profile to find university matches</p>
+            </div>
+            <Link to="/create" className="btn-primary">
+              Create Profile
+            </Link>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="list"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="flex flex-col gap-4"
+          >
+            <AnimatePresence>
+              {profiles.map((profile) => (
+                <ProfileCard key={profile._id} profile={profile} deleteProfile={deleteProfile} />
+              ))}
+            </AnimatePresence>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

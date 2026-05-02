@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 
 // The following code will serve as a form component to create or update profiles. 
 // This component will either submit a create command or an update command to our server.
@@ -110,101 +111,121 @@ export default function Profile(){
 
     // This following section will display the form that takes the input from the user.
   return (
-    <>
-      <div className="mb-6">
-        <h2 className="text-2xl font-semibold tracking-tight text-slate-100">
-          {isNew ? "Create Student Profile" : "Edit Student Profile"}
-        </h2>
-        <p className="mt-1 text-sm text-slate-400">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      className="max-w-xl mx-auto"
+    >
+      {/* Page header */}
+      <div className="mb-8">
+        <div className="flex items-center gap-3 mb-3">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center text-xl"
+            style={{ background: "linear-gradient(135deg, rgba(79,70,229,0.3), rgba(124,58,237,0.2))", border: "1px solid rgba(99,102,241,0.3)" }}
+          >
+            {isNew ? "✨" : "✏️"}
+          </div>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-100">
+            {isNew ? "Create Profile" : "Edit Profile"}
+          </h2>
+        </div>
+        <p className="text-sm text-slate-400 ml-13">
           {isNew ? "Add a new student record to the database." : "Update this student's information."}
         </p>
       </div>
+
+      {/* Form card */}
       <form
         onSubmit={onSubmit}
-        className="rounded-xl border border-slate-800 bg-slate-900 shadow-lg shadow-slate-950/50 overflow-hidden"
+        className="glass-card rounded-2xl overflow-hidden"
       >
-        <div className="grid grid-cols-1 gap-x-8 gap-y-8 p-8 md:grid-cols-2">
-          <div>
-            <h3 className="text-base font-semibold text-slate-100">
-              Student Info
-            </h3>
-            <p className="mt-2 text-sm text-slate-400">
-              Fill in the student's academic details. This information will be stored in the database.
-            </p>
-          </div>
+        <div className="p-8 flex flex-col gap-6">
+          {/* Name */}
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <label htmlFor="name" className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">
+              Full Name
+            </label>
+            <input
+              type="text"
+              name="name"
+              id="name"
+              className="input-field"
+              placeholder="First Last"
+              value={form.name}
+              onChange={(e) => updateForm({ name: e.target.value })}
+            />
+          </motion.div>
 
-          <div className="grid grid-cols-1 gap-y-6">
-            {/* Name */}
-            <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-slate-300 mb-1.5"
-              >
-                Full Name
-              </label>
-              <input
-                type="text"
-                name="name"
-                id="name"
-                className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 ring-offset-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors sm:max-w-md"
-                placeholder="First Last"
-                value={form.name}
-                onChange={(e) => updateForm({ name: e.target.value })}
-              />
-            </div>
-            {/* GPA */}
-            <div>
-              <label
-                htmlFor="gpa"
-                className="block text-sm font-medium text-slate-300 mb-1.5"
-              >
-                GPA
-              </label>
-              <input
-                type="text"
-                name="gpa"
-                id="gpa"
-                className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 ring-offset-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors sm:max-w-md"
-                placeholder="e.g. 3.8"
-                value={form.gpa}
-                onChange={(e) => updateForm({ gpa: e.target.value })}
-              />
-            </div>
-            {/* Major */}
-            <div>
-              <label
-                htmlFor="major"
-                className="block text-sm font-medium text-slate-300 mb-1.5"
-              >
-                Major
-              </label>
-              <input
-                type="text"
-                name="major"
-                id="major"
-                className="w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 ring-offset-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors sm:max-w-md"
-                placeholder="e.g. Computer Science"
-                value={form.major}
-                onChange={(e) => updateForm({ major: e.target.value })}
-              />
-            </div>
-          </div>
+          {/* GPA */}
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.15 }}
+          >
+            <label htmlFor="gpa" className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">
+              GPA
+            </label>
+            <input
+              type="text"
+              name="gpa"
+              id="gpa"
+              className="input-field"
+              placeholder="e.g. 3.8"
+              value={form.gpa}
+              onChange={(e) => updateForm({ gpa: e.target.value })}
+            />
+          </motion.div>
+
+          {/* Major */}
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+          >
+            <label htmlFor="major" className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">
+              Major
+            </label>
+            <input
+              type="text"
+              name="major"
+              id="major"
+              className="input-field"
+              placeholder="e.g. Computer Science"
+              value={form.major}
+              onChange={(e) => updateForm({ major: e.target.value })}
+            />
+          </motion.div>
         </div>
-        <div className="flex items-center justify-end gap-3 border-t border-slate-800 bg-slate-900/50 px-8 py-4">
-          <button
+
+        {/* Footer actions */}
+        <div
+          className="flex items-center justify-end gap-3 px-8 py-5"
+          style={{ borderTop: "1px solid rgba(99,102,241,0.12)", background: "rgba(15,23,42,0.5)" }}
+        >
+          <motion.button
             type="button"
             onClick={() => navigate("/")}
-            className="rounded-lg border border-slate-700 bg-transparent px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-slate-100 transition-colors"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            className="btn-secondary"
           >
             Cancel
-          </button>
-          <input
+          </motion.button>
+          <motion.input
             type="submit"
             value="Save Profile"
-            className="rounded-lg bg-indigo-600 px-5 py-2 text-sm font-medium text-white hover:bg-indigo-500 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-slate-900"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            className="btn-primary cursor-pointer"
           />
         </div>
       </form>
-    </>
+    </motion.div>
   );
 }
+
