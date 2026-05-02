@@ -6,7 +6,7 @@ export default function Navbar() {
       <nav className = "flex justify-between items-center mb-6">
         <NavLink to = "/">
         <img alt = "Logo" 
-        className="h-24 inline" 
+        className="h-28 inline" 
         src="/ca6342e6-eac1-4f04-ab21-b6e18faccadb.png">
         </img>
         </NavLink>
