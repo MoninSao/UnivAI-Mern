@@ -7,6 +7,7 @@ import {
 import App from './App';
 import Profile from "./components/Profile";
 import ProfileList from "./components/ProfileList";
+import UniversityDeck from "./components/UniversityDeck";
 import "./index.css";
 
 // using react router dom here 
@@ -38,6 +39,16 @@ const router = createBrowserRouter([
       {
         path: "/create",
         element: <Profile />,
+      },
+    ],
+  },
+  {
+    path: "/universities",
+    element: <App />,
+    children: [
+      {
+        path: "/universities",
+        element: <UniversityDeck />,
       },
     ],
   },

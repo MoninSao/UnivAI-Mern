@@ -15,6 +15,28 @@ export default function Navbar() {
           </span>
         </NavLink>
 
+        <div className="flex items-center gap-6">
+          <NavLink
+            to="/universities"
+            className={({ isActive }) =>
+              `text-sm font-medium transition-colors hover:text-slate-100 ${
+                isActive ? "text-indigo-400" : "text-slate-300"
+              }`
+            }
+          >
+            Universities
+          </NavLink>
+          <NavLink
+            to="/recommendations"
+            className={({ isActive }) =>
+              `text-sm font-medium transition-colors hover:text-slate-100 ${
+                isActive ? "text-indigo-400" : "text-slate-300"
+              }`
+            }
+          >
+            Find My Match
+          </NavLink>
+        </div>
       </nav>
     </header>
   );
