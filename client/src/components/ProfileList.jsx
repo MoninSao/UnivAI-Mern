@@ -108,7 +108,17 @@ export default function ProfileList() {
   // This following section will display the table with the profiles of individuals.
   return (
     <>
-      <h3 className="text-lg font-semibold p-4">Student profiles</h3>
+      <div className="flex justify-between items-center p-4">
+        <h3 className="text-lg font-semibold">Student profiles</h3>
+        {profiles.length === 0 && (
+          <Link
+            className="inline-flex items-center justify-center whitespace-nowrap text-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-slate-100 h-9 rounded-md px-3"
+            to="/create"
+          >
+            Create Profile
+          </Link>
+        )}
+      </div>
       <div className="border rounded-lg overflow-hidden">
         <div className="relative w-full overflow-auto">
           <table className="w-full caption-bottom text-sm">

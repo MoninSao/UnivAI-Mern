@@ -46,13 +46,21 @@ router.get("/:id", async (req, res) => {
 router.post("/", async (req, res) => {
     console.log("[POST /profiles] Request body:", req.body);
     try {
+        // query the db first for the profile
+        let collection = await db.collection("profiles");
+        // Count the amount of profile there are
+        const existing = await collection.countDocuments();
+        // Only allow for one profile to be created 
+        if (existing >= 1) {
+            console.warn("[POST /profiles] Rejected — a profile already exists");
+            return res.status(409).send("Only one profile is allowed.");
+        }
         let newProfile = {
             name: req.body.name,
             gpa: req.body.gpa,
             major: req.body.major,
         };
         console.log("[POST /profiles] Inserting:", newProfile);
-        let collection = await db.collection("profiles");
         let result = await collection.insertOne(newProfile);
         console.log("[POST /profiles] Insert result:", result);
         res.send(result).status(204);
