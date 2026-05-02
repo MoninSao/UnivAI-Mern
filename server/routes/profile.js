@@ -19,34 +19,45 @@ const router = express.Router();
 
 // This section will help you get a list of all the profiles.
 router.get("/", async (req, res) => {
+    console.log("[GET /profiles] Request received");
     let collection = await db.collection("profiles");
     let results = await collection.find({}).toArray();
+    console.log("[GET /profiles] Returning", results.length, "profiles:", results);
     res.send(results).status(200);
 });
 
 //This section will help you get a single profile by id
 router.get("/:id", async (req, res) => {
+    console.log("[GET /profiles/:id] Looking up id:", req.params.id);
     let collection = await db.collection("profiles");
     let query = { _id: new ObjectId(req.params.id) };
     let result = await collection.findOne(query);
 
-    if (!result) res.send("Not found").status(404);
-    else res.send(result).status(200);
+    if (!result) {
+        console.warn("[GET /profiles/:id] Not found for id:", req.params.id);
+        res.send("Not found").status(404);
+    } else {
+        console.log("[GET /profiles/:id] Found:", result);
+        res.send(result).status(200);
+    }
 })
 
 // This section will help you create a new profile
 router.post("/", async (req, res) => {
+    console.log("[POST /profiles] Request body:", req.body);
     try {
         let newProfile = {
             name: req.body.name,
             gpa: req.body.gpa,
             major: req.body.major,
         };
+        console.log("[POST /profiles] Inserting:", newProfile);
         let collection = await db.collection("profiles");
         let result = await collection.insertOne(newProfile);
+        console.log("[POST /profiles] Insert result:", result);
         res.send(result).status(204);
     } catch (err) {
-        console.error(err);
+        console.error("[POST /profiles] Error:", err);
         res.status(500).send("Error adding profile");
     }
 });

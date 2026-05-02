@@ -59,7 +59,7 @@ export default function ProfileList() {
       console.log("[ProfileList] getProfiles called");
       // fetch() is a general-purpose HTTP request tool - not just for GET.
       // Default is GET. To use other methods: fetch(url, { method: "POST" }) etc.
-      const response = await fetch(`http://localhost:5050/profiles/`);
+      const response = await fetch(`http://localhost:5050/profile/`);
       console.log("[ProfileList] GET /profiles status:", response.status, "| ok:", response.ok);
       if (!response.ok) {
         const message = `An error occurred: ${response.statusText}`;
@@ -85,7 +85,7 @@ export default function ProfileList() {
   // Step 2: filter() loops through the profiles array and keeps everything EXCEPT the deleted one.
   //         setProfiles updates the screen immediately - no need to re-fetch from the database.
   async function deleteProfile(id) {
-    await fetch(`http://localhost:5050/profiles/${id}`, {
+    await fetch(`http://localhost:5050/profile/${id}`, {
       method: "DELETE",
     });
     const newProfiles = profiles.filter((el) => el._id !== id);
