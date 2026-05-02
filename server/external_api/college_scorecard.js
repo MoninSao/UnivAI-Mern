@@ -20,8 +20,16 @@ export async function fetchUniversities() {
         per_page: "10", // increase this to get more results
     });
 
+    console.log("🎓 [CollegeScorecard] Fetching universities...");
     const response = await fetch(`${BASE_URL}?${params.toString()}`);
+
+    if (!response.ok) {
+        console.error(`❌ [CollegeScorecard] Request failed — status ${response.status}`);
+        throw new Error(`College Scorecard API error: ${response.status}`);
+    }
+
     const data = await response.json();
+    console.log(`✅ [CollegeScorecard] Received ${data.results.length} universities`);
 
     // Map the raw API response fields to our University object shape
     return data.results.map((school, index) => ({
