@@ -17,8 +17,12 @@ export async function fetchUniversities() {
             "latest.student.size",
             "latest.earnings.10_yrs_after_entry.median",
         ].join(","),
-        per_page: "100", // increase this to get more results
-         sort: "latest.student.size:desc", // sort by enrollment descending to surface real, well-known schools
+        // Predominantly 4-year degree-granting institutions only (value 3)
+        "school.degrees_awarded.predominant": "3",
+        // Exclude schools with no reported acceptance rate (unranked / non-selective)
+        "latest.admissions.admission_rate.overall__range": "0..1",
+        per_page: "100",
+        sort: "latest.student.size:desc",
     });
 
     console.log("🎓 [CollegeScorecard] Fetching universities...");
