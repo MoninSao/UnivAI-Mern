@@ -4,9 +4,11 @@ import "./App.css";
 
 const App = () => {
   return (
-    <div className="w-full p-6">
+    <div className="min-h-screen bg-slate-950 text-slate-100">
       <Navbar />
-      <Outlet />
+      <main className="max-w-5xl mx-auto px-6 py-8">
+        <Outlet />
+      </main>
     </div>
   );
 };

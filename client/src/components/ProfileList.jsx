@@ -9,27 +9,26 @@ import { Link } from "react-router-dom";
 // The parent component (ProfileList) fills it in with real data by passing <Profile profile={oneItem} />.
 // React components MUST start with a capital letter - lowercase would be treated as a plain HTML tag.
 const Profile = (props) => (
-  <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-    <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0">
+  <tr className="border-b border-slate-800 transition-colors hover:bg-slate-800/50">
+    <td className="p-4 align-middle text-slate-100 font-medium">
       {props.profile.name}
     </td>
-    <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0">
+    <td className="p-4 align-middle text-slate-300">
       {props.profile.gpa}
     </td>
-    <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0">
+    <td className="p-4 align-middle text-slate-300">
       {props.profile.major}
     </td>
-    <td className="p-4 align-middle [&:has([role=checkbox])]:pr-0">
+    <td className="p-4 align-middle">
       <div className="flex gap-2">
         <Link
-          className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-slate-100 h-9 rounded-md px-3"
+          className="inline-flex items-center justify-center rounded-md border border-slate-600 bg-slate-800 px-3 h-8 text-sm font-medium text-slate-200 hover:bg-slate-700 hover:border-slate-500 transition-colors"
           to={`/edit/${props.profile._id}`}
         >
           Edit
         </Link>
         <button
-          className="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-slate-100 hover:text-accent-foreground h-9 rounded-md px-3"
-          color="red"
+          className="inline-flex items-center justify-center rounded-md border border-red-900 bg-slate-800 px-3 h-8 text-sm font-medium text-red-400 hover:bg-red-950 hover:border-red-700 transition-colors"
           type="button"
           onClick={() => {
             props.deleteProfile(props.profile._id);
@@ -108,38 +107,50 @@ export default function ProfileList() {
   // This following section will display the table with the profiles of individuals.
   return (
     <>
-      <div className="flex justify-between items-center p-4">
-        <h3 className="text-lg font-semibold">Student profiles</h3>
+      <div className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight text-slate-100">Student Profiles</h2>
+          <p className="mt-1 text-sm text-slate-400">Manage and review all student records.</p>
+        </div>
         {profiles.length === 0 && (
           <Link
-            className="inline-flex items-center justify-center whitespace-nowrap text-md font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-slate-100 h-9 rounded-md px-3"
             to="/create"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 transition-colors shrink-0"
           >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+              <path d="M10.75 4.75a.75.75 0 0 0-1.5 0v4.5h-4.5a.75.75 0 0 0 0 1.5h4.5v4.5a.75.75 0 0 0 1.5 0v-4.5h4.5a.75.75 0 0 0 0-1.5h-4.5v-4.5Z" />
+            </svg>
             Create Profile
           </Link>
         )}
       </div>
-      <div className="border rounded-lg overflow-hidden">
+      <div className="rounded-xl border border-slate-800 bg-slate-900 overflow-hidden shadow-lg shadow-slate-950/50">
         <div className="relative w-full overflow-auto">
-          <table className="w-full caption-bottom text-sm">
-            <thead className="[&_tr]:border-b">
-              <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
-                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-800 bg-slate-900">
+                <th className="h-11 px-4 text-left align-middle text-xs font-semibold uppercase tracking-wider text-slate-400">
                   Name
                 </th>
-                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">
+                <th className="h-11 px-4 text-left align-middle text-xs font-semibold uppercase tracking-wider text-slate-400">
                   GPA
                 </th>
-                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">
+                <th className="h-11 px-4 text-left align-middle text-xs font-semibold uppercase tracking-wider text-slate-400">
                   Major
                 </th>
-                <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0">
-                  Action
+                <th className="h-11 px-4 text-left align-middle text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="[&_tr:last-child]:border-0">
-              {profileList()}
+            <tbody className="divide-y divide-slate-800">
+              {profiles.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="py-12 text-center text-slate-500">
+                    No profiles yet. Create one to get started.
+                  </td>
+                </tr>
+              ) : profileList()}
             </tbody>
           </table>
         </div>
