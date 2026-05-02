@@ -1,7 +1,7 @@
 // POST /recommendations
 // Body: { profileId }
-// Fetches the student profile from MongoDB, fetches universities from College Scorecard,
-// then calls OpenAI to return the top 5 matched universities with reasons
+// Returns cached recommendations if profile hasn't changed since last run,
+// otherwise calls OpenAI and saves the new result to MongoDB
 
 import express from "express";
 import { ObjectId } from "mongodb";
@@ -36,8 +36,30 @@ router.post("/", async (req, res) => {
 
     console.log(`👤 [POST /recommendations] Profile found: ${profile.name}`);
 
+    // Check for a cached recommendation newer than the last profile update.
+    // Profiles without updatedAt (created before this change) are treated as always stale.
+    const recCollection = db.collection("recommendations");
+    const profileUpdatedAt = profile.updatedAt ?? profile.updateAt ?? new Date(0); // handle both spellings (old docs used typo 'updateAt')
+    const cached = await recCollection.findOne({
+        profileId: profileId,
+        createdAt: { $gte: profileUpdatedAt },
+    });
+
+    if (cached) {
+        console.log(`⚡ [POST /recommendations] Cache hit — returning saved recommendations`);
+        return res.status(200).json({ recommendations: cached.recommendations });
+    }
+
+    console.log(`🤖 [POST /recommendations] Cache miss — calling OpenAI`);
     const universities = await fetchUniversities();
     const recommendations = await getRecommendations(profile, universities);
+
+    // Upsert: one cached result per profile, overwrite on re-run
+    await recCollection.replaceOne(
+        { profileId: profileId },
+        { profileId: profileId, recommendations, createdAt: new Date() },
+        { upsert: true }
+    );
 
     console.log(`✅ [POST /recommendations] Returning ${recommendations.length} recommendations`);
     res.status(200).json({ recommendations });

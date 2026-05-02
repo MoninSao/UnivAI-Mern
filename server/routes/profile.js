@@ -74,14 +74,27 @@ router.post("/", async (req, res) => {
 router.patch("/:id", async (req, res) => {
     try {
         const query = { _id: new ObjectId(req.params.id) };
-        const updates = {
-            $set: {
-                name: req.body.name,
-                gpa: req.body.gpa,
-                major: req.body.major,
-            },
-        };
         let collection = await db.collection("profiles");
+
+        // Only bump updatedAt (which invalidates the recommendations cache) if the
+        // actual profile content changed — not just because the form was submitted.
+        const existing = await collection.findOne(query);
+        const contentChanged =
+            !existing ||
+            existing.name !== req.body.name ||
+            existing.gpa !== req.body.gpa ||
+            existing.major !== req.body.major;
+
+        const fields = {
+            name: req.body.name,
+            gpa: req.body.gpa,
+            major: req.body.major,
+        };
+        if (contentChanged) {
+            fields.updatedAt = new Date();
+        }
+
+        const updates = { $set: fields };
         let result = await collection.updateOne(query, updates);
         res.send(result).status(200);
     } catch (err) {
