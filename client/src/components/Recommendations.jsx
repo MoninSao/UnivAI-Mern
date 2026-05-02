@@ -158,6 +158,12 @@ export default function Recommendations() {
               {profile.major}
               <span className="mx-1.5 text-slate-700">·</span>
               GPA {profile.gpa}
+              {profile.satScore && (
+                <>
+                  <span className="mx-1.5 text-slate-700">·</span>
+                  SAT {profile.satScore}
+                </>
+              )}
             </p>
           </div>
         </div>

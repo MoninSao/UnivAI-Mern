@@ -59,6 +59,7 @@ router.post("/", async (req, res) => {
             name: req.body.name,
             gpa: req.body.gpa,
             major: req.body.major,
+            satScore: req.body.satScore,
         };
         console.log("[POST /profile] Inserting:", newProfile);
         let result = await collection.insertOne(newProfile);
@@ -83,12 +84,14 @@ router.patch("/:id", async (req, res) => {
             !existing ||
             existing.name !== req.body.name ||
             existing.gpa !== req.body.gpa ||
-            existing.major !== req.body.major;
+            existing.major !== req.body.major ||
+            existing.satScore !== req.body.satScore;
 
         const fields = {
             name: req.body.name,
             gpa: req.body.gpa,
             major: req.body.major,
+            satScore: req.body.satScore,
         };
         if (contentChanged) {
             fields.updatedAt = new Date();

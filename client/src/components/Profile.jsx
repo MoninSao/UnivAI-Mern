@@ -13,6 +13,7 @@ export default function Profile(){
         name: "",
         gpa: "",
         major:"",
+        satScore: "",
     });
 
     // isNew tracks whether this is a CREATE (true) or EDIT (false) operation.
@@ -104,7 +105,7 @@ export default function Profile(){
         console.error('[Profile] Fetch error:', error);
         } finally {
         console.log("[Profile] finally block reached — navigating to /");
-            setForm({ name: "", gpa: "", major: ""});
+            setForm({ name: "", gpa: "", major: "", satScore: ""});
             navigate("/");
         }
     }
@@ -198,6 +199,26 @@ export default function Profile(){
               placeholder="e.g. Computer Science"
               value={form.major}
               onChange={(e) => updateForm({ major: e.target.value })}
+            />
+          </motion.div>
+
+          {/* SAT Score */}
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.25 }}
+          >
+            <label htmlFor="satScore" className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">
+              SAT Score <span className="normal-case text-slate-500">(optional)</span>
+            </label>
+            <input
+              type="number"
+              name="satScore"
+              id="satScore"
+              className="input-field"
+              placeholder="400–1600"
+              value={form.satScore}
+              onChange={(e) => updateForm({ satScore: e.target.value })}
             />
           </motion.div>
         </div>

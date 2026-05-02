@@ -15,7 +15,7 @@ const avatarGradients = [
 
 const statItems = (profile) => [
   { label: "GPA", value: profile.gpa },
-  { label: "SAT", value: profile.sat_score },
+  { label: "SAT", value: profile.satScore },
   { label: "ACT", value: profile.act_score },
 ];
 

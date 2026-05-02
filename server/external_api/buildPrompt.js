@@ -20,13 +20,14 @@ function formatUniversity(uni) {
 }
 
 // Builds the messages array to pass directly to client.chat.completions.create()
-// studentProfile: { name, gpa, major }
+// studentProfile: { name, gpa, major, satScore }
 // universities: array of university objects from college_scorecard.js
 export function buildPrompt(studentProfile, universities) {
     const studentSummary = [
         `Name: ${studentProfile.name}`,
         `GPA: ${studentProfile.gpa}`,
         `Intended Major: ${studentProfile.major}`,
+        `SAT Score: ${studentProfile.satScore || "not provided"}`,
     ].join("\n");
 
     const universitiesList = universities
@@ -37,7 +38,7 @@ export function buildPrompt(studentProfile, universities) {
         {
             role: "system",
             content: `You are a university admissions advisor. Given a student profile and a list of universities, 
-select the top 5 best-matched universities for that student based on their GPA, intended major, 
+select the top 5 best-matched universities for that student based on their GPA, intended major, and sat
 acceptance rate, SAT average, tuition, and career earnings potential.
 
 Respond ONLY with a valid JSON object in this exact shape:
