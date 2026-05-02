@@ -36,13 +36,19 @@ router.post("/", async (req, res) => {
 
     console.log(`👤 [POST /recommendations] Profile found: ${profile.name}`);
 
-    // Check for a cached recommendation newer than the last profile update.
-    // Profiles without updatedAt (created before this change) are treated as always stale.
     const recCollection = db.collection("recommendations");
-    const profileUpdatedAt = profile.updatedAt ?? profile.updateAt ?? new Date(0); // handle both spellings (old docs used typo 'updateAt')
+
+    // DATE 1: when the student last edited their profile (name/GPA/major)
+    // Falls back to Jan 1 1970 if updatedAt doesn't exist, so any cached result counts as fresh
+    const profileUpdatedAt = profile.updatedAt ?? new Date(0);
+
+    // DATE 2: look for a saved GPT result whose createdAt (when GPT was called) is >= profileUpdatedAt
+    // i.e. "Was GPT called AFTER the last profile change?"
+    // YES (cache hit)  → result is still valid, skip GPT
+    // NO  (cache miss) → profile changed since last run, call GPT again
     const cached = await recCollection.findOne({
         profileId: profileId,
-        createdAt: { $gte: profileUpdatedAt },
+        createdAt: { $gte: profileUpdatedAt }, // $gte = greater than or equal to
     });
 
     if (cached) {
@@ -54,7 +60,8 @@ router.post("/", async (req, res) => {
     const universities = await fetchUniversities();
     const recommendations = await getRecommendations(profile, universities);
 
-    // Upsert: one cached result per profile, overwrite on re-run
+    // Save GPT result with createdAt = now. upsert replaces the old doc if one exists,
+    // so there is always exactly one cached recommendation per profile.
     await recCollection.replaceOne(
         { profileId: profileId },
         { profileId: profileId, recommendations, createdAt: new Date() },

@@ -17,7 +17,7 @@ export async function fetchUniversities() {
             "latest.student.size",
             "latest.earnings.10_yrs_after_entry.median",
         ].join(","),
-        per_page: "50", // increase this to get more results
+        per_page: "100", // increase this to get more results
          sort: "latest.student.size:desc", // sort by enrollment descending to surface real, well-known schools
     });
 
