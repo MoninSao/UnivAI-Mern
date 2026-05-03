@@ -37,7 +37,7 @@ export default function Profile(){
             // The form will call PATCH (update) instead of POST (create) when submitted.
             setIsNew(false);
 
-            const response = await fetch(`http://localhost:5050/profile/${params.id.toString()}`);
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/profile/${params.id.toString()}`);
 
             if (!response.ok) {
                 const message = `An error has occurred: ${response.statusText}`;
@@ -78,7 +78,7 @@ export default function Profile(){
             let response;
             if (isNew) {
                  // if we are adding a new profile we will POST to /profiles.
-                 response = await fetch("http://localhost:5050/profile", {
+                 response = await fetch(`${import.meta.env.VITE_API_URL}/profile`, {
                     method: "POST",
                     headers: {
                         "Content-Type" : "application/json",
@@ -87,7 +87,7 @@ export default function Profile(){
             });
         } else {
             // if we are updating a record we will patch to /profiles/:id
-            response = await fetch(`http://localhost:5050/profile/${params.id}`, {
+            response = await fetch(`${import.meta.env.VITE_API_URL}/profile/${params.id}`, {
                 method: "PATCH",
                 headers: {
                      "Content-Type": "application/json",

@@ -14,7 +14,7 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    fetch("http://localhost:5050/profile/")
+    fetch(`${import.meta.env.VITE_API_URL}/profile/`)
       .then((r) => r.json())
       .then((data) => setHasProfile(Array.isArray(data) && data.length > 0))
       .catch(() => {});

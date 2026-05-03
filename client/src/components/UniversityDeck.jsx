@@ -35,7 +35,7 @@ export default function UniversityDeck() {
   const [direction, setDirection] = useState(1);
 
   useEffect(() => {
-    fetch("http://localhost:5050/university")
+    fetch(`${import.meta.env.VITE_API_URL}/university`)
       .then((res) => {
         if (!res.ok) throw new Error(`Server error: ${res.status}`);
         return res.json();

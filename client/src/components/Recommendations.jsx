@@ -70,7 +70,7 @@ export default function Recommendations() {
   const [recError, setRecError] = useState(null);
 
   useEffect(() => {
-    fetch("http://localhost:5050/profile")
+    fetch(`${import.meta.env.VITE_API_URL}/profile`)
       .then((res) => {
         if (!res.ok) throw new Error(`Server error: ${res.status}`);
         return res.json();
@@ -91,7 +91,7 @@ export default function Recommendations() {
     setRecError(null);
     setResults(null);
 
-    fetch("http://localhost:5050/recommendations", {
+    fetch(`${import.meta.env.VITE_API_URL}/recommendations`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ profileId: profile._id }),
