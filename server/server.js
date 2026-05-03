@@ -12,7 +12,7 @@ import recommendations from "./routes/reccomendation.js";
 const PORT = process.env.PORT || 5050;
 const app = express();
 
-app.use(cors());
+app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173" }));
 app.use(express.json());
 
 // This is where we wire or connect our API endpoints routes files, add more routes when you create new entities
