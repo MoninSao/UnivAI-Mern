@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { getSessionId } from "../utils/session.js";
 
 // The following code will serve as a form component to create or update profiles. 
 // This component will either submit a create command or an update command to our server.
@@ -37,7 +38,9 @@ export default function Profile(){
             // The form will call PATCH (update) instead of POST (create) when submitted.
             setIsNew(false);
 
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/profile/${params.id.toString()}`);
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/profile/${params.id.toString()}`, {
+                headers: { "X-Session-Id": getSessionId() },
+            });
 
             if (!response.ok) {
                 const message = `An error has occurred: ${response.statusText}`;
@@ -82,6 +85,7 @@ export default function Profile(){
                     method: "POST",
                     headers: {
                         "Content-Type" : "application/json",
+                        "X-Session-Id": getSessionId(),
                     },
                     body: JSON.stringify(person),
             });
@@ -91,6 +95,7 @@ export default function Profile(){
                 method: "PATCH",
                 headers: {
                      "Content-Type": "application/json",
+                     "X-Session-Id": getSessionId(),
                 },
                 body: JSON.stringify(person),
         });

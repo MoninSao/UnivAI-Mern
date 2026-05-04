@@ -21,7 +21,8 @@ const router = express.Router();
 router.get("/", async (req, res) => {
     console.log("[GET /profile] Request received");
     let collection = await db.collection("profiles");
-    let results = await collection.find({}).toArray();
+    const sessionId = req.headers["x-session-id"];
+    let results = await collection.find({ sessionId }).toArray();
     console.log("[GET /profile] Returning", results.length, "profile:", results);
     res.send(results).status(200);
 });
@@ -48,11 +49,12 @@ router.post("/", async (req, res) => {
     try {
         // query the db first for the profile
         let collection = await db.collection("profiles");
-        // Count the amount of profile there are
-        const existing = await collection.countDocuments();
-        // Only allow for one profile to be created 
+        // Count profiles for this session only
+        const sessionId = req.headers["x-session-id"];
+        const existing = await collection.countDocuments({ sessionId });
+        // Only allow one profile per session
         if (existing >= 1) {
-            console.warn("[POST /profile] Rejected — a profile already exists");
+            console.warn("[POST /profile] Rejected — a profile already exists for this session");
             return res.status(409).send("Only one profile is allowed.");
         }
         let newProfile = {
@@ -60,6 +62,7 @@ router.post("/", async (req, res) => {
             gpa: req.body.gpa,
             major: req.body.major,
             satScore: req.body.satScore,
+            sessionId,
         };
         console.log("[POST /profile] Inserting:", newProfile);
         let result = await collection.insertOne(newProfile);

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { getSessionId } from "../utils/session.js";
 
 // The following code will serve as a viewing component for our profiles. 
 // It will fetch all the profiles in our database through a GET method.
@@ -143,7 +144,9 @@ export default function ProfileList() {
       console.log("[ProfileList] getProfiles called");
       // fetch() is a general-purpose HTTP request tool - not just for GET.
       // Default is GET. To use other methods: fetch(url, { method: "POST" }) etc.
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/profile/`);
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/profile/`, {
+        headers: { "X-Session-Id": getSessionId() },
+      });
       console.log("[ProfileList] GET /profiles status:", response.status, "| ok:", response.ok);
       if (!response.ok) {
         const message = `An error occurred: ${response.statusText}`;
@@ -171,6 +174,7 @@ export default function ProfileList() {
   async function deleteProfile(id) {
     await fetch(`${import.meta.env.VITE_API_URL}/profile/${id}`, {
       method: "DELETE",
+      headers: { "X-Session-Id": getSessionId() },
     });
     const newProfiles = profiles.filter((el) => el._id !== id);
     setProfiles(newProfiles);

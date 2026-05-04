@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { getSessionId } from "../utils/session.js";
 
 function SpinnerIcon() {
   return (
@@ -70,7 +71,9 @@ export default function Recommendations() {
   const [recError, setRecError] = useState(null);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/profile`)
+    fetch(`${import.meta.env.VITE_API_URL}/profile`, {
+      headers: { "X-Session-Id": getSessionId() },
+    })
       .then((res) => {
         if (!res.ok) throw new Error(`Server error: ${res.status}`);
         return res.json();
@@ -93,7 +96,7 @@ export default function Recommendations() {
 
     fetch(`${import.meta.env.VITE_API_URL}/recommendations`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-Session-Id": getSessionId() },
       body: JSON.stringify({ profileId: profile._id }),
     })
       .then((res) => {

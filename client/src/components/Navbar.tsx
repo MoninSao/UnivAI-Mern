@@ -1,6 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import { getSessionId } from "../utils/session.js";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -14,7 +15,9 @@ export default function Navbar() {
   }, []);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/profile/`)
+    fetch(`${import.meta.env.VITE_API_URL}/profile/`, {
+        headers: { "X-Session-Id": getSessionId() },
+      })
       .then((r) => r.json())
       .then((data) => setHasProfile(Array.isArray(data) && data.length > 0))
       .catch(() => {});
