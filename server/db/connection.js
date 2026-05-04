@@ -25,6 +25,7 @@ try {
     );
 } catch (err) {
     console.error(err);
+    process.exit(1);
 }
 // get the univs database
 let db = client.db("univs");
