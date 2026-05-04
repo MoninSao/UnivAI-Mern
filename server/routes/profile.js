@@ -20,8 +20,12 @@ const router = express.Router();
 // This section will help you get a list of all the profiles.
 router.get("/", async (req, res) => {
     console.log("[GET /profile] Request received");
-    let collection = await db.collection("profiles");
     const sessionId = req.headers["x-session-id"];
+    if (!sessionId) {
+        console.warn("[GET /profile] Missing X-Session-Id header");
+        return res.status(400).json({ error: "Missing session ID" });
+    }
+    let collection = await db.collection("profiles");
     let results = await collection.find({ sessionId }).toArray();
     console.log("[GET /profile] Returning", results.length, "profile:", results);
     res.send(results).status(200);
@@ -30,12 +34,13 @@ router.get("/", async (req, res) => {
 //This section will help you get a single profile by id
 router.get("/:id", async (req, res) => {
     console.log("[GET /profile/:id] Looking up id:", req.params.id);
+    const sessionId = req.headers["x-session-id"];
     let collection = await db.collection("profiles");
-    let query = { _id: new ObjectId(req.params.id) };
+    let query = { _id: new ObjectId(req.params.id), sessionId };
     let result = await collection.findOne(query);
 
     if (!result) {
-        console.warn("[GET /profile/:id] Not found for id:", req.params.id);
+        console.warn("[GET /profile/:id] Not found or session mismatch for id:", req.params.id);
         res.send("Not found").status(404);
     } else {
         console.log("[GET /profile/:id] Found:", result);
@@ -77,7 +82,8 @@ router.post("/", async (req, res) => {
 // This section will help you update a profile by id
 router.patch("/:id", async (req, res) => {
     try {
-        const query = { _id: new ObjectId(req.params.id) };
+        const sessionId = req.headers["x-session-id"];
+        const query = { _id: new ObjectId(req.params.id), sessionId };
         let collection = await db.collection("profiles");
 
         // Only bump updatedAt (which invalidates the recommendations cache) if the
@@ -112,7 +118,8 @@ router.patch("/:id", async (req, res) => {
 // This section will help you delete a profile by id
 router.delete("/:id", async (req, res) => {
     try {
-        const query = { _id: new ObjectId(req.params.id) };
+        const sessionId = req.headers["x-session-id"];
+        const query = { _id: new ObjectId(req.params.id), sessionId };
 
         let collection = await db.collection("profiles");
         let result = await collection.deleteOne(query);
