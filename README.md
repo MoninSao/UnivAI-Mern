@@ -1,17 +1,20 @@
 # UnivAI-MERN
 
-A full-stack MERN (MongoDB, Express, React, Node.js) web application for AI-powered university recommendations. Users can create and manage a student profile — storing their name, GPA, and major — backed by a MongoDB Atlas cloud database. The app fetches live university data from the **College Scorecard API** and uses **OpenAI (gpt-4o-mini)** to recommend the top 5 best-matched universities with personalized reasons for each.
+A full-stack MERN (MongoDB, Express, React, Node.js) web application for AI-powered university recommendations. Each visitor creates a personal student profile — storing their name, GPA, SAT score, and major — which is isolated to their browser using a sessionId stored in `localStorage`. The app fetches live university data from the **College Scorecard API** and uses **OpenAI (gpt-4o-mini)** to recommend the top 5 best-matched universities with personalized reasons for each. Deployed on **Render** (backend) and **Vercel** (frontend).
 
 ---
 
 ## Tech Stack
 
-| Layer      | Technology                                      |
-|------------|-------------------------------------------------|
-| Frontend   | React 19, Vite, Tailwind CSS, React Router DOM  |
-| Backend    | Node.js, Express 5                              |
-| Database   | MongoDB Atlas (cloud)                           |
-| Ext. APIs  | College Scorecard API, OpenAI gpt-4o-mini            |
+| Layer          | Technology                                            |
+|----------------|-------------------------------------------------------|
+| Frontend       | React 19, Vite, Tailwind CSS, React Router DOM        |
+| Backend        | Node.js, Express 5                                    |
+| Database       | MongoDB Atlas (cloud, persistent)                     |
+| Session Store  | Browser `localStorage` (per-visitor, temporary)       |
+| External APIs  | College Scorecard API, OpenAI gpt-4o-mini             |
+| Deployment     | Render (backend), Vercel (frontend)                   |
+
 
 ---
 
@@ -19,80 +22,151 @@ A full-stack MERN (MongoDB, Express, React, Node.js) web application for AI-powe
 
 ```
 UnivAI-Mern/
-├── client/                  # React + Vite frontend
+├── client/                        # React + Vite frontend
 │   ├── src/
-│   │   ├── App.jsx          # Root component
+│   │   ├── App.jsx                # Root component + React Router routes
 │   │   ├── components/
-│   │   │   ├── Navbar.tsx           # Top navigation bar
-│   │   │   ├── Profile.jsx          # Single profile view
-│   │   │   └── ProfileList.jsx      # Displays list of student profiles
+│   │   │   ├── Navbar.tsx         # Top nav — hides "New Profile" if session already has one
+│   │   │   ├── Profile.jsx        # Create/edit profile form
+│   │   │   ├── ProfileList.jsx    # Displays this browser's saved profile
+│   │   │   ├── Recommendations.jsx# AI university match results
+│   │   │   ├── UniversityCard.jsx # Single university display card
+│   │   │   └── UniversityDeck.jsx # Browsable deck of all universities
+│   │   └── utils/
+│   │       └── session.js         # getSessionId() — localStorage UUID utility
 │   ├── tailwind.config.js
 │   └── vite.config.js
 │
-└── server/                  # Express backend
-    ├── server.js            # App entry point, middleware, route wiring
-    ├── .env                 # Environment variables (not committed)
+└── server/                        # Express backend
+    ├── server.js                  # Entry point — middleware, CORS, route wiring
+    ├── .env                       # Environment variables (never committed)
     ├── db/
-    │   └── connection.js    # MongoDB Atlas connection
+    │   └── connection.js          # MongoDB Atlas connection (exits process on failure)
     ├── routes/
-    │   ├── profile.js           # CRUD API routes for /profile
-    │   ├── university.js        # GET /university — fetches from College Scorecard
-    │   └── reccomendation.js    # POST /recommendations — AI recommendations
+    │   ├── profile.js             # CRUD routes for /profile — filtered by X-Session-Id
+    │   ├── university.js          # GET /university — proxies College Scorecard API
+    │   └── reccomendation.js      # POST /recommendations — OpenAI with caching
     └── external_api/
-        ├── college_scorecard.js # Fetches live university data from College Scorecard API
-        ├── buildPrompt.js       # Formats student + universities into OpenAI prompt
-        └── openai.js            # Calls gpt-4o-mini, returns top 5 matched universities
+        ├── college_scorecard.js   # Fetches live university data
+        ├── buildPrompt.js         # Formats profile + universities into an OpenAI prompt
+        └── openai.js              # Calls gpt-4o-mini, returns top 5 matches
 ```
 
 ---
 
-## Prerequisites
+## Environment Variables
 
-Before running the project, make sure you have the following installed:
+All secrets and configuration live in environment variables — **never hardcoded in source code**.
 
-- [Node.js](https://nodejs.org/) v18 or higher (v18+ is required for the `--env-file` flag)
-- npm (bundled with Node.js)
-- A [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) account with a cluster and a connection string
-
----
-
-## Environment Setup
-
-The backend reads configuration from `server/.env`. This file is **not** committed to source control in production — keep it local and private.
+### Backend — `server/.env` (local dev) / Render dashboard (production)
 
 ```env
-# server/.env
-
 # MongoDB Atlas connection string
 ATLAS_URI="mongodb+srv://<username>:<password>@<cluster>.mongodb.net/?appName=<AppName>"
 
-# Port the Express server will listen on
+# Port the Express server listens on
 PORT=5050
 
-# API key for the College Scorecard API
+# URL of the deployed frontend — used to restrict CORS (see CORS section below)
+# Local dev: http://localhost:5173 | Production: your Vercel URL
+CLIENT_URL=http://localhost:5173
+
+# College Scorecard API key — get one at https://api.data.gov/signup/
 COLLEGE_SCORECARD_API_KEY=your_key_here
 
-# API key for OpenAI
+# OpenAI API key
 OPENAI_API_KEY=sk-your_key_here
 ```
 
-Replace `<username>`, `<password>`, `<cluster>`, and `<AppName>` with your own MongoDB Atlas credentials.
+### Frontend — `client/.env.local` (local dev) / Vercel dashboard (production)
+
+```env
+# Base URL of the backend API (no trailing slash)
+# Local dev: http://localhost:5050 | Production: your Render URL
+VITE_API_URL=http://localhost:5050
+```
+
+> All `VITE_` prefixed variables are bundled into the client at build time by Vite. Never put secrets in `VITE_` variables — they are visible in the browser.
 
 ---
 
-## Starting the Project
+## CORS Configuration
 
-### 1. Backend (Express + MongoDB)
+CORS (Cross-Origin Resource Sharing) is the browser security rule that blocks a frontend on one domain from calling a backend on a different domain. Without it, `vercel.app` cannot talk to `onrender.com`.
 
-Open a terminal and navigate to the `server/` directory:
+In `server/server.js`:
+```js
+app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173" }));
+```
+
+- `process.env.CLIENT_URL` is set to your Vercel URL in the **Render dashboard → Environment tab**.
+- Locally it falls back to `http://localhost:5173`.
+- This tells the browser: "only requests coming from this exact origin are allowed."
+
+> If you ever change your Vercel URL, update `CLIENT_URL` in Render and redeploy the backend.
+
+---
+
+## MongoDB Atlas — Network Access
+
+MongoDB Atlas blocks all incoming connections by default. Because Render uses dynamic IPs that change on every deploy, you cannot whitelist a specific IP.
+
+**Required Atlas setting:**
+1. Go to **MongoDB Atlas → Network Access**
+2. Click **Add IP Address**
+3. Enter `0.0.0.0/0` — this allows connections from anywhere
+4. Save
+
+> This is standard practice for Render/Railway/Heroku deployments. The connection is still secured by your `ATLAS_URI` username and password.
+
+---
+
+## Deployment
+
+### Backend → Render
+
+1. Push your code to GitHub
+2. Go to [render.com](https://render.com) → **New Web Service** → connect `MoninSao/UnivAI-Mern`
+3. Set **Root Directory** to `server`
+4. Set **Build Command** to `npm install` and **Start Command** to `node server.js`
+5. Under **Environment** tab, add all backend variables:
+   - `ATLAS_URI`
+   - `OPENAI_API_KEY`
+   - `COLLEGE_SCORECARD_API_KEY`
+   - `PORT=5050`
+   - `CLIENT_URL=https://<your-vercel-app>.vercel.app`
+6. Deploy — Render gives you a public URL like `https://univai-mern.onrender.com`
+
+### Frontend → Vercel
+
+1. Go to [vercel.com](https://vercel.com) → **New Project** → Import `MoninSao/UnivAI-Mern`
+2. Set **Root Directory** to `client`
+3. Under **Environment Variables**, add:
+   - `VITE_API_URL=https://<your-render-service>.onrender.com` (no trailing slash)
+4. Deploy — Vercel gives you a URL like `https://univai-mern.vercel.app`
+5. Go back to Render → update `CLIENT_URL` to your Vercel URL → redeploy
+
+Both services now reference each other correctly.
+
+---
+
+## Local Development
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) v18 or higher
+- npm (bundled with Node.js)
+- A [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) account with a cluster
+
+### 1. Backend
 
 ```bash
 cd server
-npm install          # Install backend dependencies (only needed once or after a pull)
+npm install
 node --env-file=.env server.js
 ```
 
-> The `--env-file=.env` flag loads environment variables from `.env` without a separate package. Requires **Node.js v18+**.
+> `--env-file=.env` loads environment variables from `.env` without an extra package. Requires **Node.js v18+**.
 
 **Expected output:**
 ```
@@ -100,35 +174,27 @@ Pinged your development. You successfully connected to MongoDB!
 server listening on port 5050
 ```
 
-The API is now available at `http://localhost:5050`.
+### 2. Frontend
 
----
-
-### 2. Frontend (React + Vite)
-
-Open a **second** terminal and navigate to the `client/` directory:
+Open a **second** terminal:
 
 ```bash
 cd client
-npm install          # Install frontend dependencies (only needed once or after a pull)
+npm install
 npm run dev
 ```
 
 **Expected output:**
 ```
-  VITE vX.X.X  ready in Xms
-
-  ➜  Local:   http://localhost:5173/
-  ➜  Network: use --host to expose
+VITE vX.X.X  ready in Xms
+➜  Local:   http://localhost:5173/
 ```
-
-The app is now running at `http://localhost:5173`.
 
 ---
 
 ## After Every Pull
 
-Whenever you pull new changes, reinstall dependencies in **both** directories in case new packages were added:
+Reinstall dependencies in both directories in case new packages were added:
 
 ```bash
 cd server && npm install
@@ -139,59 +205,70 @@ cd ../client && npm install
 
 ## API Endpoints
 
-All routes are prefixed with `/profile` and served at `http://localhost:5050`.
+### Profiles (`/profile`)
 
-| Method   | Endpoint        | Description                  |
-|----------|-----------------|------------------------------|
-| `GET`    | `/profile`      | Get all profiles             |
-| `GET`    | `/profile/:id`  | Get a single profile by ID   |
-| `POST`   | `/profile`      | Create a new profile         |
-| `PATCH`  | `/profile/:id`  | Update a profile by ID       |
-| `DELETE` | `/profile/:id`  | Delete a profile by ID       |
+| Method   | Endpoint        | Description                                         |
+|----------|-----------------|-----------------------------------------------------|
+| `GET`    | `/profile`      | Get profiles for this browser session               |
+| `GET`    | `/profile/:id`  | Get a single profile by MongoDB ID                  |
+| `POST`   | `/profile`      | Create a profile (one per session, enforced server-side) |
+| `PATCH`  | `/profile/:id`  | Update a profile by ID                              |
+| `DELETE` | `/profile/:id`  | Delete a profile by ID                              |
 
-**Profile document shape:**
+All `/profile` requests must include the `X-Session-Id` header (added automatically by the frontend via `getSessionId()`).
+
+**Profile document shape (MongoDB):**
 ```json
 {
+  "_id": "664abc...",
   "name": "Jane Doe",
-  "gpa": 3.8,
-  "major": "Computer Science"
+  "gpa": "3.8",
+  "satScore": "1450",
+  "major": "Computer Science",
+  "sessionId": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
 }
 ```
+
+### Recommendations (`/recommendations`)
+
+| Method | Endpoint           | Description                                     |
+|--------|--------------------|-------------------------------------------------|
+| `POST` | `/recommendations` | Get AI university matches for a given profileId |
 
 ---
 
 ## Debugging Common Issues
 
-### `Error: ATLAS_URI is not defined` or MongoDB connection fails
-- Confirm `.env` exists inside the `server/` directory.
-- Make sure you are running the server from the `server/` directory (not the root).
-- Verify your Atlas connection string is correct and your IP address is whitelisted in the Atlas Network Access settings.
+### `MongoTopologyClosedError: Topology is closed`
+The server connected to MongoDB Atlas but the connection was rejected silently on startup. The server now calls `process.exit(1)` on connection failure so Render will restart it cleanly.
+- **Most likely cause:** MongoDB Atlas Network Access does not allow Render's IP. Add `0.0.0.0/0` (see MongoDB Atlas section above).
+- Verify `ATLAS_URI` is set correctly in the Render dashboard.
+
+### Profile shows for wrong user / all users see the same profile
+- Confirm the frontend is sending `X-Session-Id` on all `/profile` requests.
+- Confirm the backend GET route uses `collection.find({ sessionId })` not `find({})`.
+
+### CORS error in browser console
+- Confirm `CLIENT_URL` is set to your exact Vercel URL in Render (no trailing slash).
+- After updating `CLIENT_URL`, trigger a manual redeploy on Render.
+
+### `VITE_API_URL` not working in production
+- Confirm the variable is set in **Vercel → Settings → Environment Variables** (not just `.env.local`).
+- Vercel requires a redeploy after adding/changing env variables.
 
 ### `--env-file` flag not recognized
-- This flag requires **Node.js v18 or higher**. Run `node --version` to check.
-- If you're on an older version, install Node.js v18+ or use the `dotenv` package as an alternative.
-
-### `Cannot GET /` on `http://localhost:5050`
-- This is expected — the server has no root route. Use `/profile` instead.
-
-### Frontend shows no data / network errors
-- Make sure the **backend is running** on port 5050 before starting the frontend.
-- Open browser DevTools → Network tab to inspect failed requests and confirm they are hitting `http://localhost:5050/profile`.
-- Check that CORS is not blocked; the server has `app.use(cors())` enabled for all origins.
+- Requires **Node.js v18+**. Run `node --version` to check.
 
 ### Port already in use (`EADDRINUSE`)
-- Something else is running on port 5050 (or 5173 for the frontend).
-- Find and kill the process:
-  ```bash
-  lsof -i :5050        # find the process using port 5050
-  kill -9 <PID>        # replace <PID> with the process ID shown
-  ```
-- Alternatively, change the `PORT` value in `config.env` and update any fetch URLs in the frontend accordingly.
+```bash
+lsof -i :5050    # find the process
+kill -9 <PID>    # kill it
+```
 
 ### `npm install` errors
-- Delete `node_modules` and `package-lock.json` and retry:
-  ```bash
-  rm -rf node_modules package-lock.json
-  npm install
-  ```
-- Do this separately in both `server/` and `client/` if needed.
+```bash
+rm -rf node_modules package-lock.json
+npm install
+```
+Run this separately in both `server/` and `client/`.
+
