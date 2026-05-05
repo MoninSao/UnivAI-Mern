@@ -6,14 +6,16 @@ A full-stack MERN (MongoDB, Express, React, Node.js) web application for AI-powe
 
 ## Tech Stack
 
-| Layer          | Technology                                            |
-|----------------|-------------------------------------------------------|
-| Frontend       | React 19, Vite, Tailwind CSS, React Router DOM        |
-| Backend        | Node.js, Express 5                                    |
-| Database       | MongoDB Atlas (cloud, persistent)                     |
-| Session Store  | Browser `localStorage` (per-visitor, temporary)       |
-| External APIs  | College Scorecard API, OpenAI gpt-4o-mini             |
-| Deployment     | Render (backend), Vercel (frontend)                   |
+| Layer            | Technology                                            |
+|------------------|-------------------------------------------------------|
+| Frontend         | React 19, Vite, Tailwind CSS, React Router DOM        |
+| Backend          | Node.js, Express 5                                    |
+| Database         | MongoDB Atlas (cloud, persistent)                     |
+| Session Store    | Browser `localStorage` (per-visitor, temporary)       |
+| External APIs    | College Scorecard API, OpenAI gpt-4o-mini             |
+| Containerization | Docker, Docker Compose, nginx (multi-stage builds)    |
+| CI               | GitHub Actions (Docker image builds on every push)    |
+| Deployment       | Render (backend), Vercel (frontend)                   |
 
 
 ---
@@ -147,6 +149,48 @@ MongoDB Atlas blocks all incoming connections by default. Because Render uses dy
 5. Go back to Render → update `CLIENT_URL` to your Vercel URL → redeploy
 
 Both services now reference each other correctly.
+
+---
+
+## Running with Docker
+
+The app can run fully containerized using Docker and Docker Compose. The backend connects to the same MongoDB Atlas cluster used in production — no local MongoDB container needed.
+
+### Prerequisites
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (includes Docker Engine + Compose)
+
+### Setup
+
+```bash
+# 1. Start both containers (builds images on first run)
+docker-compose up --build
+
+# 2. Visit the app
+#    Frontend: http://localhost:8080
+#    Backend:  http://localhost:5050
+```
+
+To stop:
+
+```bash
+docker-compose down
+```
+
+### Architecture
+
+| Service  | Image base       | Container port | Host port | Notes                              |
+|----------|------------------|----------------|-----------|------------------------------------|
+| backend  | node:20-alpine   | 5050           | 5050      | Express server, connects to Atlas  |
+| frontend | nginx:alpine     | 80             | 8080      | Vite build served by nginx         |
+
+The frontend image is multi-stage: stage 1 builds the React app with Node, stage 2 serves the static `dist/` folder with nginx. Final image is ~25 MB.
+
+`VITE_API_URL` is baked into the frontend bundle at build time via a Docker build arg — not a runtime environment variable.
+
+### CI/CD
+
+Both Docker images build automatically on every push and PR to `main` via GitHub Actions (`.github/workflows/ci.yml`). The workflow verifies the Dockerfiles are valid — it does not push to a registry.
 
 ---
 
