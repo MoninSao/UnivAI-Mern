@@ -1,0 +1,47 @@
+# docker-compose.yml
+# Spins up backend + frontend containers locally. MongoDB is NOT containerized —
+# the backend connects to MongoDB Atlas (cloud), same as production.
+#
+# Usage:
+#   docker-compose up           # start both services (logs in foreground)
+#   docker-compose up -d        # start in background (detached)
+#   docker-compose down         # stop and remove containers
+#   docker-compose up --build   # rebuild images (after Dockerfile changes)
+#
+# Requires 1 `.env` file each at the project client and server folder with the same secrets the backend and frontend uses
+# locally. See `.env.example` if added later, or copy from server/.env.
+
+services:
+  backend:
+
+    # Build a custom image from local source code
+    # instead of image: Pull a pre-built image from a registry (e.g. Docker Hub)
+    build:
+      context: ./server # Path to the backend Dockerfile + source
+    container_name: univai-backend
+    ports:
+      - "5050:5050" # host:container — visit http://localhost:5050
+    environment:
+      # All secrets come from the .env file at the server folder.
+      # `${VAR}` syntax pulls from the host's environment / .env file.
+      - PORT=5050
+      - ATLAS_URI=${ATLAS_URI}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - COLLEGE_SCORECARD_API_KEY=${COLLEGE_SCORECARD_API_KEY}
+      # CORS: allow requests from the containerized frontend (port 8080 on host)
+      - CLIENT_URL=http://localhost:8080
+    restart: unless-stopped # auto-restart if the process crashes
+
+  frontend:
+    build:
+      context: ./client
+      args:
+        # Vite bakes this into the bundle at build time. Points the React app
+        # at the backend container, which is exposed on host port 5050.
+        VITE_API_URL: http://localhost:5050
+    container_name: univai-frontend
+    ports:
+      - "8080:80" # host 8080 → nginx 80 — visit http://localhost:8080
+    depends_on:
+      - backend # start backend first (doesn't wait for it to be ready, just started)
+    restart: unless-stopped
