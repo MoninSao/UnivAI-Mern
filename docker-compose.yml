@@ -21,14 +21,11 @@ services:
     container_name: univai-backend
     ports:
       - "5050:5050" # host:container — visit http://localhost:5050
+    env_file:
+      - ./server/.env # load all secrets from server/.env (single source of truth)
     environment:
-      # All secrets come from the .env file at the server folder.
-      # `${VAR}` syntax pulls from the host's environment / .env file.
-      - PORT=5050
-      - ATLAS_URI=${ATLAS_URI}
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - COLLEGE_SCORECARD_API_KEY=${COLLEGE_SCORECARD_API_KEY}
-      # CORS: allow requests from the containerized frontend (port 8080 on host)
+      # Override CLIENT_URL for container context — server/.env has localhost:5173 (local dev)
+      # but in Docker the frontend is served on host port 8080
       - CLIENT_URL=http://localhost:8080
     restart: unless-stopped # auto-restart if the process crashes
 
