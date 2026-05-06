@@ -1,0 +1,57 @@
+# .github/workflows/ci.yml
+# Builds both Docker images on every push and PR to main.
+# Build-only — does NOT push to a registry. The goal is to verify the
+# Dockerfiles are valid and the images compile cleanly on every change.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # Builds run in parallel (separate jobs) — saves time vs running sequentially
+  build-backend:
+    name: Build backend image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        # Buildx is the modern Docker builder. Faster, better caching.
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./server
+          push: false             # build-only, don't publish anywhere
+          tags: univai-backend:ci
+          cache-from: type=gha    # use GitHub Actions cache to speed up rebuilds
+          cache-to: type=gha,mode=max
+
+  build-frontend:
+    name: Build frontend image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build frontend image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./client
+          push: false
+          tags: univai-frontend:ci
+          # Pass a dummy API URL — CI just needs to verify the build works,
+          # not produce a usable image
+          build-args: |
+            VITE_API_URL=http://localhost:5050
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
