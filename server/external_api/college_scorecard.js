@@ -21,7 +21,7 @@ export async function fetchUniversities() {
         "school.degrees_awarded.predominant": "3",
         // Exclude schools with no reported acceptance rate (unranked / non-selective)
         "latest.admissions.admission_rate.overall__range": "0..1",
-        per_page: "100",
+        per_page: "150",
         sort: "latest.student.size:desc",
     });
 
