@@ -10,8 +10,14 @@ const router = express.Router();
 // Returns a list of universities from the College Scorecard API
 router.get("/", async (req, res) => {
     console.log("[GET /university] Request received");
-    const results = await fetchUniversities();
-    res.status(200).json(results);
+    try {
+        const results = await fetchUniversities();
+        res.status(200).json(results);
+    } catch {
+        console.error("[GET /university] Error:", err);
+        res.status(500).json({ error: err.message });        
+    }
+    
 });
 
 export default router;
