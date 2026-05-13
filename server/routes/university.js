@@ -13,7 +13,7 @@ router.get("/", async (req, res) => {
     try {
         const results = await fetchUniversities();
         res.status(200).json(results);
-    } catch {
+    } catch (err) {
         console.error("[GET /university] Error:", err);
         res.status(500).json({ error: err.message });        
     }
