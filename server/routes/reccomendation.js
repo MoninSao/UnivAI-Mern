@@ -5,7 +5,8 @@
 
 import express from "express";
 import { ObjectId } from "mongodb";
-import db from "../db/connection.js";
+import {getDb} from "../db/connection.js";
+
 import { fetchUniversities } from "../external_api/college_scorecard.js";
 import { getRecommendations } from "../external_api/openai.js";
 
@@ -22,6 +23,7 @@ router.post("/", async (req, res) => {
 
     let profile;
     try {
+        const db = await getDb();
         const collection = db.collection("profiles");
         profile = await collection.findOne({ _id: new ObjectId(profileId) });
     } catch (err) {
@@ -36,8 +38,8 @@ router.post("/", async (req, res) => {
 
     console.log(`👤 [POST /recommendations] Profile found: ${profile.name}`);
 
-    // Check for a cached recommendation newer than the last profile update.
-    // Profiles without updatedAt (created before this change) are treated as always stale.
+    // Return cached result if profile hasn't changed since last run
+    const db = await getDb();
     const recCollection = db.collection("recommendations");
     const profileUpdatedAt = profile.updatedAt ?? new Date(0);
     const cached = await recCollection.findOne({

@@ -7,7 +7,7 @@
 import express from "express";
 
 // This will help us connect to the database
-import db from "../db/connection.js";
+import {getDb} from "../db/connection.js";
 
 // This help convert the id form string to objectId for the _id.
 import { ObjectId } from "mongodb";
@@ -25,7 +25,8 @@ router.get("/", async (req, res) => {
         console.warn("[GET /profile] Missing X-Session-Id header");
         return res.status(400).json({ error: "Missing session ID" });
     }
-    let collection = await db.collection("profiles");
+    const db = await getDb();
+    let collection = db.collection("profiles");
     let results = await collection.find({ sessionId }).toArray();
     console.log("[GET /profile] Returning", results.length, "profile:", results);
     res.send(results).status(200);
@@ -35,7 +36,8 @@ router.get("/", async (req, res) => {
 router.get("/:id", async (req, res) => {
     console.log("[GET /profile/:id] Looking up id:", req.params.id);
     const sessionId = req.headers["x-session-id"];
-    let collection = await db.collection("profiles");
+    const db = await getDb();
+    let collection = db.collection("profiles");
     let query = { _id: new ObjectId(req.params.id), sessionId };
     let result = await collection.findOne(query);
 
@@ -53,7 +55,8 @@ router.post("/", async (req, res) => {
     console.log("[POST /profile] Request body:", req.body);
     try {
         // query the db first for the profile
-        let collection = await db.collection("profiles");
+        const db = await getDb()
+        let collection = db.collection("profiles");
         // Count profiles for this session only
         const sessionId = req.headers["x-session-id"];
         const existing = await collection.countDocuments({ sessionId });
@@ -84,7 +87,8 @@ router.patch("/:id", async (req, res) => {
     try {
         const sessionId = req.headers["x-session-id"];
         const query = { _id: new ObjectId(req.params.id), sessionId };
-        let collection = await db.collection("profiles");
+        const db = await getDb();
+        let collection = db.collection("profiles");
 
         // Only bump updatedAt (which invalidates the recommendations cache) if the
         // actual profile content changed — not just because the form was submitted.
@@ -121,7 +125,8 @@ router.delete("/:id", async (req, res) => {
         const sessionId = req.headers["x-session-id"];
         const query = { _id: new ObjectId(req.params.id), sessionId };
 
-        let collection = await db.collection("profiles");
+        const db = await getDb()
+        let collection = db.collection("profiles");
         let result = await collection.deleteOne(query);
 
         res.send(result).status(200);
