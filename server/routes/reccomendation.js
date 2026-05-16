@@ -5,7 +5,8 @@
 
 import express from "express";
 import { ObjectId } from "mongodb";
-import db from "../db/connection.js";
+import {getDb} from "../db/connection.js";
+
 import { fetchUniversities } from "../external_api/college_scorecard.js";
 import { getRecommendations } from "../external_api/openai.js";
 
@@ -22,6 +23,7 @@ router.post("/", async (req, res) => {
 
     let profile;
     try {
+        const db = await getDb();
         const collection = db.collection("profiles");
         profile = await collection.findOne({ _id: new ObjectId(profileId) });
     } catch (err) {
@@ -36,33 +38,38 @@ router.post("/", async (req, res) => {
 
     console.log(`👤 [POST /recommendations] Profile found: ${profile.name}`);
 
-    // Check for a cached recommendation newer than the last profile update.
-    // Profiles without updatedAt (created before this change) are treated as always stale.
-    const recCollection = db.collection("recommendations");
-    const profileUpdatedAt = profile.updatedAt ?? new Date(0);
-    const cached = await recCollection.findOne({
-        profileId: profileId,
-        createdAt: { $gte: profileUpdatedAt },
-    });
+    try {
+        // Return cached result if profile hasn't changed since last run
+        const db = await getDb();
+        const recCollection = db.collection("recommendations");
+        const profileUpdatedAt = profile.updatedAt ?? new Date(0);
+        const cached = await recCollection.findOne({
+            profileId: profileId,
+            createdAt: { $gte: profileUpdatedAt },
+        });
 
-    if (cached) {
-        console.log(`⚡ [POST /recommendations] Cache hit — returning saved recommendations`);
-        return res.status(200).json({ recommendations: cached.recommendations });
+        if (cached) {
+            console.log(`⚡ [POST /recommendations] Cache hit — returning saved recommendations`);
+            return res.status(200).json({ recommendations: cached.recommendations });
+        }
+
+        console.log(`🤖 [POST /recommendations] Cache miss — calling OpenAI`);
+        const universities = await fetchUniversities();
+        const recommendations = await getRecommendations(profile, universities);
+
+        // Upsert: one cached result per profile, overwrite on re-run
+        await recCollection.replaceOne(
+            { profileId: profileId },
+            { profileId: profileId, recommendations, createdAt: new Date() },
+            { upsert: true }
+        );
+
+        console.log(`✅ [POST /recommendations] Returning ${recommendations.length} recommendations`);
+        res.status(200).json({ recommendations });
+    } catch (err) {
+        console.error("❌ [POST /recommendations] Error:", err);
+        res.status(500).json({ error: err.message });
     }
-
-    console.log(`🤖 [POST /recommendations] Cache miss — calling OpenAI`);
-    const universities = await fetchUniversities();
-    const recommendations = await getRecommendations(profile, universities);
-
-    // Upsert: one cached result per profile, overwrite on re-run
-    await recCollection.replaceOne(
-        { profileId: profileId },
-        { profileId: profileId, recommendations, createdAt: new Date() },
-        { upsert: true }
-    );
-
-    console.log(`✅ [POST /recommendations] Returning ${recommendations.length} recommendations`);
-    res.status(200).json({ recommendations });
 });
 
 export default router;
